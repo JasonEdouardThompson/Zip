@@ -8,6 +8,15 @@
 
 import Foundation
 
+extension FileManager {
+    //returns true if the url points to a directory that exists
+    func isDirectory( atPath path : String ) -> Bool {
+        var isDirectory: ObjCBool = false
+        let _ = fileExists(atPath: path, isDirectory: &isDirectory)
+        return isDirectory.boolValue
+    }
+}
+
 internal class ZipUtilities {
     
     // File manager
@@ -37,16 +46,17 @@ internal class ZipUtilities {
     internal func processZipPaths(_ paths: [URL]) -> [ProcessedFilePath]{
         var processedFilePaths = [ProcessedFilePath]()
         for path in paths {
-            let filePath = path.path
-            var isDirectory: ObjCBool = false
-            fileManager.fileExists(atPath: filePath, isDirectory: &isDirectory)
-            if !isDirectory.boolValue {
-                let processedPath = ProcessedFilePath(filePathURL: path, fileName: path.lastPathComponent)
-                processedFilePaths.append(processedPath)
-            }
-            else {
+            
+            if fileManager.isDirectory( atPath: path.path ) {
+                
                 let directoryContents = expandDirectoryFilePath(path)
                 processedFilePaths.append(contentsOf: directoryContents)
+                
+            } else {
+                
+                let processedPath = ProcessedFilePath(filePathURL: path, fileName: path.lastPathComponent)
+                processedFilePaths.append(processedPath)
+                
             }
         }
         return processedFilePaths
@@ -61,22 +71,18 @@ internal class ZipUtilities {
      - returns: Array of ProcessedFilePath structs.
      */
     internal func expandDirectoryFilePath(_ directory: URL) -> [ProcessedFilePath] {
-        var processedFilePaths = [ProcessedFilePath]()
-        let directoryPath = directory.path
-        if let enumerator = fileManager.enumerator(atPath: directoryPath) {
-            while let filePathComponent = enumerator.nextObject() as? String {
-                let path = directory.appendingPathComponent(filePathComponent)
-                let filePath = path.path
-                let directoryName = directory.lastPathComponent
-
-                var isDirectory: ObjCBool = false
-                fileManager.fileExists(atPath: filePath, isDirectory: &isDirectory)
-                if !isDirectory.boolValue {
-                    let fileName = (directoryName as NSString).appendingPathComponent(filePathComponent)
-                    let processedPath = ProcessedFilePath(filePathURL: path, fileName: fileName)
-                    processedFilePaths.append(processedPath)
-                }
+        
+        guard let subpaths = fileManager.subpaths(atPath: directory.path) else { return [] }
+        
+        let processedFilePaths = subpaths.flatMap { (path:String) -> ProcessedFilePath? in
+            
+            guard let url = URL( string: path, relativeTo: directory ), !fileManager.isDirectory(atPath: url.path) else {
+                return nil
             }
+            
+            let relativeURL = (directory.lastPathComponent as NSString).appendingPathComponent(path)
+            
+            return ProcessedFilePath(filePathURL: url, fileName: relativeURL)
         }
         return processedFilePaths
     }

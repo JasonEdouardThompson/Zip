@@ -223,6 +223,7 @@ public class Zip {
      
      - parameter paths:       Array of NSURL filepaths.
      - parameter zipFilePath: Destination NSURL, should lead to a .zip filepath.
+     - parameter fileNameTransform: transforms filenames before they are stored in the zip.
      - parameter password:    Password string. Optional.
      - parameter compression: Compression strategy
      - parameter progress: A progress closure called after unzipping each file in the archive. Double value betweem 0 and 1.
@@ -231,7 +232,7 @@ public class Zip {
      
      - notes: Supports implicit progress composition
      */
-    public class func zipFiles(paths: [URL], zipFilePath: URL, password: String? = nil, compression: ZipCompression = .DefaultCompression, progress: ((_ progress: Double) -> ())? = nil) throws {
+    public class func zipFiles(paths: [URL], zipFilePath: URL, fileNameTransform: FileNameTransform? = nil, password: String? = nil, compression: ZipCompression = .DefaultCompression, progress: ((_ progress: Double) -> ())? = nil) throws {
         
         // File manager
         let fileManager = FileManager.default
@@ -240,7 +241,7 @@ public class Zip {
         let destinationPath = zipFilePath.path
         
         // Process zip paths
-        let processedPaths = ZipUtilities().processZipPaths(paths)
+        let processedPaths = ZipUtilities().processZipPaths(paths, fileNameTransform: fileNameTransform)
         
         // Zip set up
         let chunkSize: Int = 16384

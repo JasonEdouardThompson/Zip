@@ -97,6 +97,44 @@ class ZipTests: XCTestCase {
         }
     }
     
+    func testUnzipDeepSubDir() {
+        
+        
+        let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("testQuickUnzipSubNDir", isDirectory: true)
+        
+        print( temporaryDirectoryURL.path)
+        let archiveURL = temporaryDirectoryURL.appendingPathComponent("archive.zip")
+        let archiveOuputURL = temporaryDirectoryURL.appendingPathComponent("archive", isDirectory: true)
+        
+        var endDirectory = temporaryDirectoryURL
+        var endDirectoryUpzipped = archiveOuputURL
+        
+        for i in 0..<10 {
+            let subDir = "sub_dir_\(i)"
+            endDirectory.appendPathComponent(subDir, isDirectory: true)
+            endDirectoryUpzipped.appendPathComponent(subDir, isDirectory: true)
+        }
+        
+        let inputTextFileURL = endDirectory.appendingPathComponent("test.txt")
+        let outputTextFileURL = endDirectoryUpzipped.appendingPathComponent("test.txt")
+        
+        do {
+            
+            try FileManager.default.createDirectory(at: endDirectory, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: archiveOuputURL, withIntermediateDirectories: true, attributes: nil)
+            
+            try "test contents".write(to: inputTextFileURL, atomically: true, encoding: .utf8)
+            
+            try Zip.zipFiles(paths: [temporaryDirectoryURL.appendingPathComponent("sub_dir_0", isDirectory: true)], zipFilePath: archiveURL, password: nil, progress: nil )
+            
+            try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)
+            
+            XCTAssertTrue(FileManager.default.fileExists(atPath:outputTextFileURL.path))
+        } catch {
+            XCTFail()
+        }
+    }
+   
     func testImplicitProgressUnzip() {
         do {
             let progress = Progress()

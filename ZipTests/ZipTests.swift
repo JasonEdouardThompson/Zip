@@ -232,7 +232,7 @@ class ZipTests: XCTestCase {
         }
     }
     
-    func testSkipFiles() {
+    func testSkipFilesFromFolder() {
         
         
         let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("testSkipFiles", isDirectory: true)
@@ -268,9 +268,53 @@ class ZipTests: XCTestCase {
             XCTFail("\(e)")
         }
     }
+    
+    func testSkipFilesIndividually() {
+        
+        let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("testRenameFiles", isDirectory: true)
+        
+        let documentDirectoryURL = temporaryDirectoryURL.appendingPathComponent("files", isDirectory: true)
+        
+        let archiveURL = temporaryDirectoryURL.appendingPathComponent("archive.zip")
+        let archiveOuputURL = temporaryDirectoryURL.appendingPathComponent("archive", isDirectory: true)
+        
+        do {
+            
+            try FileManager.default.createDirectory(at: temporaryDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: documentDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            
+            var files : [URL] = []
+            
+            let n = 5
+            
+            for i in 0..<n{
+                let url = documentDirectoryURL.appendingPathComponent("file\(i)_\(i % 2 == 0 ? "keep" : "skip" ).txt")
+                files.append(url)
+                try "test contents \(i)".write(to: url, atomically: true, encoding: .utf8)
+            }
+            
+            //skip even files
+            let fileNameTransform : FileNameTransform = {  $0.hasSuffix("keep.txt") ? $0 : nil }
+            
+            try Zip.zipFiles(paths: files, zipFilePath: archiveURL, fileNameTransform: fileNameTransform, password: nil, progress: nil )
+            try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)
+            
+            
+            for i in 0..<n{
+                let shouldExist = (i % 2 == 0)
+                let exists = FileManager.default.fileExists(atPath:archiveOuputURL.appendingPathComponent("file\(i)_\(shouldExist ? "keep" : "skip" ).txt").path)
+                XCTAssertEqual(shouldExist, exists)
+            }
+            
+            try FileManager.default.removeItem(at: temporaryDirectoryURL)
+        } catch let e {
+            XCTFail("\(e)")
+        }
+    }
+
 
     
-    func testRenameFiles() {
+    func testRenameFilesFromFolder() {
         
         
         let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("testRenameFiles", isDirectory: true)
@@ -305,6 +349,50 @@ class ZipTests: XCTestCase {
             XCTFail("\(e)")
         }
     }
+    
+    
+    func testRenameFilesIndividual() {
+        
+        
+        let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("testRenameFiles", isDirectory: true)
+        
+        let documentDirectoryURL = temporaryDirectoryURL.appendingPathComponent("files", isDirectory: true)
+        
+        let archiveURL = temporaryDirectoryURL.appendingPathComponent("archive.zip")
+        let archiveOuputURL = temporaryDirectoryURL.appendingPathComponent("archive", isDirectory: true)
+        
+        do {
+            
+            try FileManager.default.createDirectory(at: temporaryDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: documentDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+            
+            var files : [URL] = []
+            
+            let n = 5
+            
+            for i in 0..<n{
+                let url = documentDirectoryURL.appendingPathComponent("file\(i).txt")
+                files.append(url)
+                try "test contents \(i)".write(to: url, atomically: true, encoding: .utf8)
+            }
+            
+            let fileNameTransform : FileNameTransform = { $0.substring(to: $0.index($0.endIndex, offsetBy: -4)) + "_b.txt" }
+            
+            try Zip.zipFiles(paths: files, zipFilePath: archiveURL, fileNameTransform: fileNameTransform, password: nil, progress: nil )
+            try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)
+            
+            
+            for i in 0..<n{
+                XCTAssertTrue(FileManager.default.fileExists(atPath:archiveOuputURL.appendingPathComponent("file\(i)_b.txt").path))
+            }
+            
+            try FileManager.default.removeItem(at: temporaryDirectoryURL)
+        } catch let e {
+            XCTFail("\(e)")
+        }
+    }
+
+    
     
     func testZipUnzipPassword() {
         do {

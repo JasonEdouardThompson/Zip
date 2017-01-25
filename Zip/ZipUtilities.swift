@@ -67,7 +67,7 @@ internal class ZipUtilities {
                 
             } else {
                 
-                guard let fileName = apply( fileNameTransform: fileNameTransform, to: path.path ) else {
+                guard let fileName = apply( fileNameTransform: fileNameTransform, to: path.lastPathComponent ) else {
                     continue
                 }
                 

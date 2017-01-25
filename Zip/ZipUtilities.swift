@@ -18,7 +18,7 @@ extension FileManager {
 }
 //changes the name of the file to something different before it is placed
 //into the zip, or returns nil if we are to ignore the file
-public typealias FileNameTransform = (String) -> String?
+public typealias FileNameTransform = (String,String) -> String?
 
 internal class ZipUtilities {
     
@@ -37,13 +37,13 @@ internal class ZipUtilities {
         }
     }
     
-    private func apply( fileNameTransform: FileNameTransform?, to fileName: String ) -> String? {
+    private func apply( fileNameTransform: FileNameTransform?, to fileName: String, in directory: String ) -> String? {
         
         guard let ft = fileNameTransform else {
             return fileName
         }
         
-        return ft(fileName)
+        return ft(fileName, directory)
     }
     
     //MARK: Path processing
@@ -67,7 +67,7 @@ internal class ZipUtilities {
                 
             } else {
                 
-                guard let fileName = apply( fileNameTransform: fileNameTransform, to: path.lastPathComponent ) else {
+                guard let fileName = apply( fileNameTransform: fileNameTransform, to: path.lastPathComponent, in: path.deletingLastPathComponent().path ) else {
                     continue
                 }
                 
@@ -100,7 +100,7 @@ internal class ZipUtilities {
             
             let relativeURL = (directory.lastPathComponent as NSString).appendingPathComponent(path)
             
-            guard let fileName = apply( fileNameTransform: fileNameTransform, to: relativeURL ) else {
+            guard let fileName = apply( fileNameTransform: fileNameTransform, to: relativeURL, in: directory.path ) else {
                 return nil
             }
             

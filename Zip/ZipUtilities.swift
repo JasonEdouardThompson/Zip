@@ -92,7 +92,7 @@ internal class ZipUtilities {
         
         guard let subpaths = fileManager.subpaths(atPath: directory.path) else { return [] }
         
-        let processedFilePaths = subpaths.flatMap { (path:String) -> ProcessedFilePath? in
+        let processedFilePaths = subpaths.compactMap { (path:String) -> ProcessedFilePath? in
             
             guard let url = URL( string: path, relativeTo: directory ), !fileManager.isDirectory(atPath: url.path) else {
                 return nil

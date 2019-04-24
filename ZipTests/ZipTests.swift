@@ -252,7 +252,7 @@ class ZipTests: XCTestCase {
             try "test contents 3".write(to: documentDirectoryURL.appendingPathComponent("file3.txt"), atomically: true, encoding: .utf8)
             try "test contents 4".write(to: documentDirectoryURL.appendingPathComponent("file4.txt"), atomically: true, encoding: .utf8)
             
-            let fileNameTransform : FileNameTransform = { $0.0.hasSuffix("file2.txt") || $0.0.hasSuffix("file4.txt") ? nil : $0.0 }
+            let fileNameTransform : FileNameTransform = { a, b in a.hasSuffix("file2.txt") || a.hasSuffix("file4.txt") ? nil : a }
             
             try Zip.zipFiles(paths: [documentDirectoryURL], zipFilePath: archiveURL, fileNameTransform: fileNameTransform, password: nil, progress: nil )
             try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)
@@ -294,7 +294,7 @@ class ZipTests: XCTestCase {
             }
             
             //skip even files
-            let fileNameTransform : FileNameTransform = {  $0.0.hasSuffix("keep.txt") ? $0.0 : nil }
+            let fileNameTransform : FileNameTransform = { a, b in a.hasSuffix("keep.txt") ? a : nil }
             
             try Zip.zipFiles(paths: files, zipFilePath: archiveURL, fileNameTransform: fileNameTransform, password: nil, progress: nil )
             try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)
@@ -334,7 +334,7 @@ class ZipTests: XCTestCase {
             try "test contents 3".write(to: documentDirectoryURL.appendingPathComponent("file3.txt"), atomically: true, encoding: .utf8)
             try "test contents 4".write(to: documentDirectoryURL.appendingPathComponent("file4.txt"), atomically: true, encoding: .utf8)
             
-            let fileNameTransform : FileNameTransform = { $0.0.substring(to: $0.0.index($0.0.endIndex, offsetBy: -4)) + "_b.txt" }
+            let fileNameTransform : FileNameTransform = { a, b in a.substring(to: a.index(a.endIndex, offsetBy: -4)) + "_b.txt" }
             
             try Zip.zipFiles(paths: [documentDirectoryURL], zipFilePath: archiveURL, fileNameTransform: fileNameTransform, password: nil, progress: nil )
             try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)
@@ -376,7 +376,7 @@ class ZipTests: XCTestCase {
                 try "test contents \(i)".write(to: url, atomically: true, encoding: .utf8)
             }
             
-            let fileNameTransform : FileNameTransform = { $0.0.substring(to: $0.0.index($0.0.endIndex, offsetBy: -4)) + "_b.txt" }
+            let fileNameTransform : FileNameTransform = { a, b in a.substring(to: a.index(a.endIndex, offsetBy: -4)) + "_b.txt" }
             
             try Zip.zipFiles(paths: files, zipFilePath: archiveURL, fileNameTransform: fileNameTransform, password: nil, progress: nil )
             try Zip.unzipFile(archiveURL, destination: archiveOuputURL, overwrite: true, password: nil, progress: nil)

@@ -147,7 +147,7 @@ public class Zip {
             fileName[Int(fileInfo.size_filename)] = 0
             var pathString = String(cString: fileName)
             
-            guard pathString.characters.count > 0 else {
+            guard pathString.count > 0 else {
                 throw ZipError.unzipFail
             }
 
@@ -164,8 +164,8 @@ public class Zip {
             let fullPath = destination.appendingPathComponent(pathString).path
 
             let creationDate = Date()
-            let directoryAttributes = [FileAttributeKey.creationDate.rawValue : creationDate,
-                                       FileAttributeKey.modificationDate.rawValue : creationDate]
+            let directoryAttributes = [FileAttributeKey.creationDate : creationDate,
+                                       FileAttributeKey.modificationDate : creationDate]
             do {
                 if isDirectory {
                     try fileManager.createDirectory(atPath: fullPath, withIntermediateDirectories: true, attributes: directoryAttributes)
